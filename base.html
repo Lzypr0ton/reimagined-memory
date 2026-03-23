@@ -1,0 +1,357 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Training Management System{% endblock %}</title>
+    {% csrf_token %}
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- FullCalendar CSS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <!-- Add Tippy.js -->
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css"/>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .sidebar h4 {
+            color: white;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 2px 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        
+        .navbar-nav .nav-link {
+            color: #333;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin: 0 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: #f8f9fa;
+            color: #1976d2;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        
+        .dropdown-item {
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #1976d2;
+        }
+        
+        .dropdown-item.active {
+            background-color: #1976d2;
+            color: white;
+        }
+        
+        .dropdown-submenu {
+            position: relative;
+        }
+        
+        .dropdown-submenu .dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -1px;
+        }
+        
+        .dropdown-submenu:hover > .dropdown-menu {
+            display: block;
+        }
+        .dropdown-submenu > a:after {
+            display: block;
+            content: " ";
+            float: right;
+            width: 0;
+            height: 0;
+            border-color: transparent;
+            border-style: solid;
+            border-width: 5px 0 5px 5px;
+            border-left-color: #fff;
+            margin-top: 5px;
+            margin-right: -10px;
+        }
+        .dropdown-submenu:hover > a:after {
+            border-left-color: #fff;
+        }
+        
+        .user-role-badge {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        .user-role-badge.admin {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        
+        .user-role-badge.alpha {
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        }
+        
+        .user-role-badge.beta {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar">
+                <div class="text-center mb-4">
+                    <h4>Training Management</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard-home' %}active{% endif %}" href="{% url 'dashboard:dashboard-home' %}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="programsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-graduation-cap"></i> Programs
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="programsDropdown">
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'all_programs' %}active{% endif %}" href="{% url 'dashboard:all_programs' %}">
+                                    All Programs
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'calendar_programs' %}active{% endif %}" href="{% url 'dashboard:calendar_programs' %}">
+                                    Calendar Programs
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {% if request.resolver_match.url_name == 'non_calendar_programs' %}active{% endif %}" href="{% url 'dashboard:non_calendar_programs' %}">
+                                    Non-Calendar Programs
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}" href="{% url 'dashboard:calendar' %}">
+                            <i class="fas fa-clock"></i> Scheduling
+                        </a>
+                    </li>
+                    {% if 'User Alpha' not in user_group_names and 'User Beta' not in user_group_names %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'register' %}active{% endif %}" href="{% url 'dashboard:register' %}">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="feedbackDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-clipboard-check"></i> Feedback & Assessment
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="feedbackDropdown">
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    <i class="fas fa-smile"></i> Reaction
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'dashboard:feedback_form' %}">
+                                            <i class="fas fa-file-alt"></i> Feedback Form
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                    <i class="fas fa-graduation-cap"></i> Learning
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'dashboard:pre_assessment' %}">
+                                            <i class="fas fa-clipboard-list"></i> Pre Assessment
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'dashboard:post_assessment' %}">
+                                            <i class="fas fa-clipboard-check"></i> Post Assessment
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard:manager_checklist' %}">
+                                    <i class="fas fa-tasks"></i> Behaviour - Manager Checklist
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'dashboard:roi' %}">
+                                    <i class="fas fa-chart-line"></i> ROI
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Top Navbar -->
+                <nav class="navbar navbar-expand-lg navbar-light mb-4">
+                    <div class="container-fluid">
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarNav">
+                            <ul class="navbar-nav ms-auto">
+                                <!-- User Role Display -->
+                                <li class="nav-item">
+                                    <span class="navbar-text">
+                                        <i class="fas fa-user"></i> {{ user.get_full_name|default:user.username }}
+                                        {% if user.is_superuser %}
+                                            <span class="user-role-badge admin">Admin</span>
+                                        {% elif user.groups.all.0.name == 'User Alpha' %}
+                                            <span class="user-role-badge alpha">User Alpha</span>
+                                        {% elif user.groups.all.0.name == 'User Beta' %}
+                                            <span class="user-role-badge beta">User Beta</span>
+                                        {% else %}
+                                            <span class="user-role-badge">User</span>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                
+                                <!-- Conditional Navigation Items Based on User Role -->
+                                {% if user.is_superuser or user.is_staff or user.groups.all.0.name == 'User Alpha' %}
+                                <li class="nav-item">
+                                <!--   <a class="nav-link {% if request.resolver_match.url_name == 'sync-onedrive' %}active{% endif %}" href="{% url 'dashboard:sync-onedrive' %}">
+                                <!--        <i class="fas fa-sync"></i> Sync OneDrive
+                                    </a> -->
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'uploaded-files' %}active{% endif %}" href="{% url 'dashboard:uploaded-files' %}">
+                                        <i class="fas fa-file-upload"></i> Uploaded Files
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {% if request.resolver_match.url_name == 'upload_excel' %}active{% endif %}" href="{% url 'dashboard:upload_excel' %}">
+                                        <i class="fas fa-file-excel"></i> Upload Excel
+                                    </a>
+                                </li>
+                                {% endif %}
+                                
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{% url 'logout' %}">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Handle nested dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownSubmenus = document.querySelectorAll('.dropdown-submenu');
+            
+            dropdownSubmenus.forEach(submenu => {
+                const link = submenu.querySelector('.dropdown-toggle');
+                const menu = submenu.querySelector('.dropdown-menu');
+                
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Close other open submenus
+                    dropdownSubmenus.forEach(otherSubmenu => {
+                        if (otherSubmenu !== submenu) {
+                            otherSubmenu.querySelector('.dropdown-menu').classList.remove('show');
+                        }
+                    });
+                    
+                    // Toggle current submenu
+                    menu.classList.toggle('show');
+                });
+            });
+            
+            // Close submenus when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown-submenu')) {
+                    document.querySelectorAll('.dropdown-submenu .dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
+                    });
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

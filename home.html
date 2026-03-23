@@ -1,0 +1,165 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Training Management System{% endblock %}
+
+{% block content %}
+<style>
+.card-icon-bg {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 3.5rem;
+    opacity: 0.15;
+    pointer-events: none;
+}
+.card-footer-bar {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    color: #fff;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    text-decoration: none;
+}
+.card-blue { background: #17a2b8; color: #fff; }
+.card-green { background: #28a745; color: #fff; }
+.card-yellow { background: #ffc107; color: #fff; }
+.card-red { background: #dc3545; color: #fff; }
+.card { border: none; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); position: relative; overflow: hidden; }
+</style>
+<div class="container mt-4">
+    <div class="row">
+        <!-- Programs Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card card-blue h-100 position-relative">
+                <div class="card-body">
+                    <span class="card-icon-bg"><i class="fas fa-graduation-cap"></i></span>
+                    <h5 class="card-title">Programs</h5>
+                    <h2 class="display-4">{{ total_program_schedules }}</h2>
+                    <p>Total Program Schedules</p>
+                    <div class="mt-3">
+                        <span class="badge bg-primary me-1">Planned: {{ planned_schedules }}</span>
+                        <span class="badge bg-success me-1">Completed: {{ completed_schedules }}</span>
+                        <span class="badge bg-warning text-dark me-1">Postponed: {{ postponed_schedules }}</span>
+                        <span class="badge bg-danger">Cancelled: {{ cancelled_schedules }}</span>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard:calendar_programs' %}" class="card-footer-bar" style="background:#138496;">
+                    More info <i class="fas fa-arrow-circle-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+        <!-- Faculty Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card card-yellow h-100 position-relative">
+                <div class="card-body">
+                    <span class="card-icon-bg"><i class="fas fa-chalkboard-teacher"></i></span>
+                    <h5 class="card-title">Faculty</h5>
+                    <h2 class="display-4">{{ total_faculty }}</h2>
+                    <p>Total Faculty Members</p>
+                </div>
+                <a href="/admin/dashboard/faculty/" class="card-footer-bar" style="background:#e0a800;" target="_blank">
+                    More info <i class="fas fa-arrow-circle-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+        <!-- Employee Lookup Status Card (replaces Participants Card) -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow h-100" id="employeeLookupCard">
+                <div class="card-header bg-primary text-white">
+                    <form id="employeeLookupForm" class="d-flex align-items-center" autocomplete="off">
+                        <span class="me-3"><i class="bi bi-search" style="font-size:1.5rem;"></i></span>
+                        <input type="text" class="form-control me-2" id="pnoInput" placeholder="Enter P No." required style="max-width:200px;">
+                        <button type="submit" class="btn btn-light text-primary fw-bold">Search</button>
+                    </form>
+                </div>
+                <div class="card-body" id="employeeDetails">
+                    <div class="text-muted text-center">Enter a P No. to look up an employee.</div>
+                </div>
+            </div>
+        </div>
+        <!-- Django Admin Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card card-green h-100 position-relative">
+                <div class="card-body">
+                    <span class="card-icon-bg"><i class="fas fa-cogs"></i></span>
+                    <h5 class="card-title">Admin Panel</h5>
+                    <h2 class="display-4"><i class="fas fa-arrow-right"></i></h2>
+                    <p>Go to Django Admin</p>
+                </div>
+                <a href="/admin/" class="card-footer-bar" style="background:#218838;" target="_blank">
+                    Open Admin <i class="fas fa-arrow-circle-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('employeeLookupForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const pno = document.getElementById('pnoInput').value.trim();
+        const detailsDiv = document.getElementById('employeeDetails');
+        detailsDiv.innerHTML = '<div class="text-muted text-center">Searching...</div>';
+        try {
+            const response = await fetch(`/dashboard/api/employee_lookup/?p_no=${encodeURIComponent(pno)}`);
+            if (!response.ok) throw new Error('Not found');
+            const data = await response.json();
+            if (data.success) {
+                let html = `
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="rounded-circle bg-primary text-white d-inline-flex justify-content-center align-items-center me-3" style="width:48px;height:48px;font-size:2rem;">
+                            <i class="bi bi-person-circle"></i>
+                        </span>
+                        <div>
+                            <h5 class="mb-0">${data.name} <span class="text-muted">(${data.pers_no})</span></h5>
+                            <small class="text-muted">${data.department || '-'}</small>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><strong>Gender:</strong> ${data.gender_key || '-'}</div>
+                        <div class="col-6"><strong>Status:</strong> ${data.employment_status || '-'}</div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">Attendance</h6>
+                    ${data.attendance && data.attendance.length > 0 ? `
+                        <div class="table-responsive">
+                            <table class="table table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Training</th>
+                                        <th>Program</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.attendance.map(a => `
+                                        <tr>
+                                            <td>${a.training_name}</td>
+                                            <td>${a.program_name || '-'}</td>
+                                            <td>${a.date || '-'}</td>
+                                            <td><span class="badge bg-${a.attended ? 'success' : 'secondary'}">${a.attended ? 'Attended' : 'Absent'}</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : `<div class="alert alert-info text-center">No attendance records found.</div>`}
+                `;
+                detailsDiv.innerHTML = html;
+            } else {
+                detailsDiv.innerHTML = '<div class="alert alert-danger text-center">Employee not found.</div>';
+            }
+        } catch (err) {
+            detailsDiv.innerHTML = '<div class="alert alert-danger text-center">Employee not found.</div>';
+        }
+    });
+</script>
+{% endblock %} 
