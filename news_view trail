@@ -86,7 +86,8 @@ def home(request):
     # NEW: program counts by category
     program_counts = {
         'she': Program.objects.filter(category__iexact='SHE').count(),
-        'fst_cb': Program.objects.filter(category__iexact='FST CB').count(),
+        'fst': Program.objects.filter(category__iexact='FST').count(),
+        'cb': Program.objects.filter(category__iexact='CB').count(),
         'induction': Program.objects.filter(category__iexact='Induction').count(),
     }
 
