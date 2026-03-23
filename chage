@@ -1,0 +1,6 @@
+dashboard/templates/dashboard/base.html (Tailwind theme, logo/header changes)
+dashboard/templates/dashboard/home.html (new dashboard cards, removed faculty card)
+dashboard/templates/dashboard/schedule_trainings.html (added “Download CSV” attendance export form)
+dashboard/new_views.py (new API api_attendance_report; CSV export)
+dashboard/urls.py (route api/attendance/export/)
+static/img/tata-logo.svg (local logo asset)
